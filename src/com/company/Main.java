@@ -1,51 +1,18 @@
 package com.company;
 
-import java.util.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.ImageObserver;
+import java.text.AttributedCharacterIterator;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Stack;
+import java.util.TimerTask;
+
 
 public class Main {
     public static final int MAPSIZE = 16;
-    public static class Node{
-        int x;
-        int y;
-        Node parent;
-        boolean visited = false;
-        double costFromStart;
-        double costFromEnd;
-        double fCost = Double.MAX_VALUE;
-        LinkedList<Node> adjacentNodes = new LinkedList<>();
-    public Node(int x, int y){
-        this.x = x;
-        this.y = y;
-    }
-    public void calculateFCost(Node sender, Node goal){
-        parent = sender;
-        if(sender.x == this.x || sender.y == this.y){
-            //this is adjacent to sender
-            costFromStart = sender.costFromStart+1;
-        }else{
-            //this is diagonal to sender
-            costFromStart = sender.costFromStart+(Math.sqrt(2));
-        }
-        //Pythagorean Theorem
-        double xDif = Math.abs(this.x - goal.x);
-        double yDif = Math.abs(this.y - goal.y);
-        //Square the values
-        xDif = xDif*xDif;
-        yDif = yDif*yDif;
-        //Cost from end is the sqrt of these two added together
-        costFromEnd = Math.sqrt(xDif+yDif);
-        fCost = costFromStart + costFromEnd;
-    }
-    public String printNode(){
-        return "[" + this.x + "," + this.y + "] ";
-    }
-    public static void removeNeighbor(Node current, Node neighbor){
-        if(current.adjacentNodes.contains(neighbor))
-            current.adjacentNodes.remove(neighbor);
-        if(neighbor.adjacentNodes.contains(current))
-            neighbor.adjacentNodes.remove(current);
-    }
-    }
+
 
     public static void addWalls(Node current, Node... neighbors){
         for(Node e: neighbors){
@@ -290,7 +257,6 @@ public class Main {
         addWalls(map[8][15],map[7][15],map[7][14]);
         addWalls(map[10][15],map[11][15],map[11][14]);
         addWalls(map[11][15],map[10][14],map[10][15]);
-
         //Now we need to remove the center 4 blocks in the middle
         for(int col = 5; col < 10; col++){
             for(int row = 5; row < 10; row++){
@@ -298,28 +264,6 @@ public class Main {
             }
         }
         return map;
-    }
-    public static void generateUninformedPath(Node start, Node end){
-        Stack<Node> Q = new Stack();
-        Q.push(start);
-        while(!Q.isEmpty()){
-            Node G = Q.pop();
-            G.visited = true;
-            if(G.equals(end)) {
-                while(!G.equals(start)){
-                    System.out.print("[" + G.x + "," + G.y + "] ");
-                    G = G.parent;
-                }
-                System.out.print("[" + G.x + "," + G.y + "] ");
-            }else{
-                for(Node e: G.adjacentNodes){
-                    if(!Q.contains(e) && e.visited == false) {
-                        Q.push(e);
-                        e.parent = G;
-                    }
-                }
-            }
-        }
     }
     public static Node getLowestCostNode(LinkedList<Node> list){
         double minCost = Double.MAX_VALUE;
@@ -365,26 +309,24 @@ public class Main {
     public static void outputPath(Node e){
         Stack<Node> nodeStack = new Stack<>();
         while(!e.parent.equals(e)){
+            e.visited = true;
             nodeStack.push(e);
             e = e.parent;
         }
+        e.visited = true;
         nodeStack.push(e.parent);
         while(!nodeStack.isEmpty()){
             System.out.print("[" + nodeStack.peek().x + "," + nodeStack.pop().y + "] ");
         }
-
     }
-    public static void main(String[] args) {
+
+    public static int generateRandomLocation(){
+        int loc = Math.abs(new Random().nextInt()%(MAPSIZE-1));
+        return loc;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
         Node[][] map = generateMap();
-        Node start = map[0][0];
-        Node end = map[15][15];
-        System.out.println("\nPath from 0,0 to 15,15:");
-        generateInformedPath(start,end);
-        System.out.println();
-        map = generateMap();
-        start = map[15][15];
-        end = map[0][0];
-        System.out.println("\nPath from 15,15 to 0,0:");
-        generateInformedPath(start,end);
+        GUI gui = new GUI(map);
     }
 }
